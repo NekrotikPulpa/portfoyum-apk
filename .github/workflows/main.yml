@@ -13,10 +13,18 @@ jobs:
       - name: Kodlari Cek
         uses: actions/checkout@v4
 
-      - name: Zip Kontrolu
+      - name: Proje Dosyalarini Ac
         run: |
-          if [ -f "Portfoyum_Android_GitHub.zip" ] && [ ! -d "app" ]; then
-            unzip -o Portfoyum_Android_GitHub.zip
+          for z in *.zip; do
+            if [ -f "$z" ]; then
+              unzip -o "$z"
+            fi
+          done
+          if [ ! -f "settings.gradle.kts" ]; then
+            sub=$(find . -maxdepth 3 -name "settings.gradle.kts" | head -n 1)
+            if [ -n "$sub" ]; then
+              cp -r "$(dirname "$sub")"/* .
+            fi
           fi
 
       - name: JDK 17 Kur
@@ -25,14 +33,13 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Android SDK Kur
-        uses: android-actions/setup-android@v3
-
-      - name: Gradle 8.7 Kur ve APK Derle
+      - name: Gradle 8.7 Kur
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.7'
-          arguments: assembleDebug
+
+      - name: Android APK Derle
+        run: gradle assembleDebug
 
       - name: Hazir APK Dosyasini Yukle
         uses: actions/upload-artifact@v4
